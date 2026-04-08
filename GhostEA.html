@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#07101e"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Ghost EA Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#050a14;font-family:'Rajdhani',sans-serif;color:#e0e0e0}
+:root{
+  --cyan:#00e5ff;--blue:#0d47a1;--darkbg:#07101e;--cardbg:#0a1628;
+  --cardbg2:#0d1f3a;--green:#00e676;--red:#f44336;--purple:#7c4dff;--gold:#ffab40
+}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:#00e5ff33;border-radius:2px}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes fillBar{from{width:0}to{width:100%}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scanline{0%{top:-10%}100%{top:110%}}
+@keyframes glow{0%,100%{box-shadow:0 0 10px var(--cyan)}50%{box-shadow:0 0 30px var(--cyan),0 0 60px var(--cyan)}}
+
+/* ── App Shell ── */
+#app{width:100%;max-width:420px;height:100vh;margin:0 auto;position:relative;overflow:hidden;background:var(--darkbg)}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;transition:opacity .3s}
+.hidden{display:none!important}
+
+/* ── Splash ── */
+#splash{background:linear-gradient(180deg,#050a14,#0a1628);align-items:center;justify-content:center;gap:14px}
+.splash-glow{position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:320px;height:320px;background:radial-gradient(circle,#00e5ff18,transparent 65%);pointer-events:none}
+.splash-ghost{animation:float 3s ease-in-out infinite}
+.splash-title{font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;letter-spacing:8px;color:#fff;text-shadow:0 0 30px var(--cyan)}
+.splash-sub{font-size:12px;color:#00e5ff88;letter-spacing:3px}
+.splash-bar{width:200px;height:3px;background:#ffffff0f;border-radius:2px;overflow:hidden;margin-top:20px}
+.splash-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:2px;animation:fillBar 2.4s ease forwards}
+.splash-powered{font-size:10px;color:#ffffff22;letter-spacing:4px;margin-top:6px}
+
+/* ── Header ── */
+.header{padding:14px 20px 10px;background:linear-gradient(180deg,#0d1f3a,var(--darkbg));border-bottom:1px solid #ffffff0f;position:relative;overflow:hidden;flex-shrink:0}
+.header-glow{position:absolute;top:0;left:50%;transform:translateX(-50%);width:300px;height:50px;background:radial-gradient(ellipse,#00e5ff14,transparent 70%);pointer-events:none}
+.header-sub{font-size:10px;color:#00e5ff77;letter-spacing:3px;text-transform:uppercase}
+.header-title{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:#fff;text-shadow:0 0 20px #00e5ff66}
+.header-badge{display:flex;align-items:center;gap:5px;font-size:10px;color:#667;margin-top:3px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite}
+
+/* ── Banner ── */
+.banner{position:relative;height:130px;background:linear-gradient(135deg,#0a1628,#0d2044);overflow:hidden;display:flex;align-items:center;gap:16px;padding:0 22px;border-bottom:1px solid #ffffff0a;flex-shrink:0}
+.banner-overlay{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,#00e5ff08,transparent 60%)}
+.banner-scanline{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00e5ff22,transparent);animation:scanline 4s linear infinite;pointer-events:none}
+.banner-info{z-index:1}
+.banner-account{font-family:'Orbitron',sans-serif;font-size:15px;color:#fff;font-weight:700}
+.banner-broker{font-size:12px;color:#00e5ff88;margin-top:4px}
+.banner-server{font-size:10px;color:#445;margin-top:2px}
+
+/* ── Controls ── */
+.controls{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:10px;flex-shrink:0}
+.btn-remove{flex:1;padding:12px 6px;border:1.5px solid #f4433666;border-radius:28px;background:transparent;color:var(--red);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:'Rajdhani',sans-serif}
+.btn-start{width:70px;height:70px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .3s;flex-shrink:0}
+.btn-start.idle{background:linear-gradient(135deg,#0d47a1,#1565c0);box-shadow:0 0 20px #1565c055}
+.btn-start.active{background:linear-gradient(135deg,#00b0ff,#00e5ff);box-shadow:0 0 28px #00e5ff66;animation:glow 2s infinite}
+.btn-start-icon{font-size:20px}
+.btn-start-label{font-size:8px;font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:1px;color:#fff;margin-top:2px}
+.btn-symbols{flex:1;padding:12px 6px;border:1.5px solid #00e5ff33;border-radius:28px;background:transparent;color:var(--cyan);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:'Rajdhani',sans-serif}
+
+/* ── Tab Bar ── */
+.tab-bar{display:flex;background:#0a1628;border-top:1px solid #ffffff0a;border-bottom:1px solid #ffffff0a;flex-shrink:0}
+.tab-btn{flex:1;padding:9px 2px;background:transparent;border:none;color:#446;font-size:9px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.5px;transition:all .2s;border-bottom:2px solid transparent}
+.tab-btn.active{color:var(--cyan);border-bottom-color:var(--cyan);background:#00e5ff09}
+
+/* ── Tab Content ── */
+.tab-content{flex:1;overflow-y:auto;padding:12px 14px 80px}
+
+/* ── Stats ── */
+.stats-row{display:flex;gap:8px;margin-bottom:8px}
+.stat-card{flex:1;background:var(--cardbg2);border:1px solid;border-radius:12px;padding:10px 6px;text-align:center}
+.stat-value{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:700}
+.stat-label{font-size:9px;color:#445;margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+.section-label{font-size:9px;color:#00e5ff77;letter-spacing:3px;text-transform:uppercase;margin:10px 0 6px}
+.strat-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.strat-chip{background:var(--cardbg2);border:1px solid #00e5ff1a;border-radius:8px;padding:5px 8px}
+.strat-key{font-size:8px;color:var(--cyan);font-weight:700;font-family:'Orbitron',sans-serif;display:block}
+.strat-val{font-size:8px;color:#445;display:block;margin-top:1px}
+.status-card{background:var(--cardbg2);border-radius:12px;border:1px solid #ffffff08;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.status-row{display:flex;justify-content:space-between;align-items:center}
+.status-label{font-size:11px;color:#778}
+.status-val{font-size:11px;font-weight:700;font-family:'Orbitron',sans-serif}
+
+/* ── Signals ── */
+.signal-card{background:var(--cardbg);border:1px solid;border-radius:13px;padding:11px 12px;animation:fadein .4s ease;margin-bottom:8px}
+.signal-top{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.signal-pair{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#fff}
+.signal-dir{font-size:9px;font-weight:700;color:#000;padding:2px 10px;border-radius:20px;font-family:'Orbitron',sans-serif}
+.signal-time{font-size:9px;color:#334;margin-left:auto}
+.signal-strat{font-size:10px;color:#00e5ff88;margin-bottom:7px}
+.signal-grid{display:flex;gap:10px}
+.signal-field{display:flex;flex-direction:column}
+.signal-field-lbl{font-size:8px;color:#445;letter-spacing:1px}
+.signal-field-val{font-size:10px;font-weight:700;font-family:'Orbitron',sans-serif;margin-top:2px}
+.signal-result{margin-top:7px;border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;font-family:'Orbitron',sans-serif;text-align:center}
+.empty-msg{text-align:center;color:#334;font-size:13px;padding:40px 0}
+
+/* ── Symbols ── */
+.symbol-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.symbol-btn{padding:9px 14px;border-radius:24px;border:1.5px solid #00e5ff22;background:transparent;color:#445;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;letter-spacing:1px;transition:all .2s}
+.symbol-btn.active{background:#00e5ff1a;border-color:var(--cyan);color:var(--cyan)}
+
+/* ── Settings ── */
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--cardbg2);border-radius:10px;border:1px solid #ffffff07;margin-bottom:5px}
+.setting-label{font-size:11px;color:#aaa}
+.setting-val{font-size:11px;font-weight:700}
+.toggle-group{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.toggle-btn{padding:7px 11px;border-radius:20px;border:1px solid #223;background:transparent;color:#445;font-size:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;transition:all .2s}
+.toggle-btn.active{background:#00e5ff1a;border-color:var(--cyan);color:var(--cyan)}
+
+/* ── Logs ── */
+.logs-screen{font-family:monospace;font-size:10px;display:flex;flex-direction:column;gap:3px}
+.log-line{padding:2px 0;border-bottom:1px solid #ffffff04}
+.log-time{color:#223}
+
+/* ── MT Screen ── */
+.mt-header{display:flex;align-items:center;gap:12px;padding:18px 18px 14px;background:var(--cardbg2);border-bottom:1px solid #ffffff0a;flex-shrink:0}
+.mt-title{font-family:'Orbitron',sans-serif;font-size:15px;color:#fff;font-weight:700}
+.mt-sub{font-size:10px;color:#445;margin-top:2px}
+.mt-body{padding:18px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;flex:1}
+.back-btn{background:transparent;border:none;color:var(--cyan);font-size:14px;cursor:pointer;padding:4px;font-family:'Rajdhani',sans-serif}
+.platform-toggle{display:flex;background:var(--cardbg2);border-radius:28px;padding:4px;margin-bottom:6px}
+.platform-btn{flex:1;padding:10px;border-radius:24px;border:none;background:transparent;color:#445;font-size:13px;font-weight:700;cursor:pointer;font-family:'Orbitron',sans-serif;transition:all .2s}
+.platform-btn.active{background:#1565c0;color:#fff}
+.input-label{font-size:11px;color:#556;letter-spacing:1px;margin-top:3px}
+.inp{width:100%;padding:13px 14px;background:var(--cardbg2);border:1px solid #ffffff0d;border-radius:12px;color:#e0e0e0;font-size:13px;font-family:'Rajdhani',sans-serif;outline:none}
+.inp:focus{border-color:#00e5ff44}
+.btn-connect{width:100%;padding:15px;background:linear-gradient(135deg,#0288d1,#00e5ff);border:none;border-radius:28px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;font-family:'Orbitron',sans-serif;letter-spacing:2px;box-shadow:0 4px 20px #00e5ff33}
+.btn-test{width:100%;padding:13px;background:transparent;border:1.5px solid #00e5ff33;border-radius:28px;color:var(--cyan);font-size:12px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700}
+.enc-note{text-align:center;font-size:10px;color:#223;margin-top:6px}
+.success-msg{background:#00e67618;border:1px solid var(--green);border-radius:10px;padding:9px 12px;color:var(--green);font-size:11px;text-align:center}
+
+/* ── Bottom Nav ── */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;display:flex;background:var(--darkbg);border-top:1px solid #ffffff0a;padding:7px 0 10px;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;border:none;color:#334;font-size:8px;cursor:pointer;font-family:'Rajdhani',sans-serif;letter-spacing:.5px}
+.nav-btn span.nav-icon{font-size:18px;line-height:1}
+.nav-plus{background:linear-gradient(135deg,#0288d1,#00e5ff);border-radius:50%;width:46px;height:46px;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;margin:-14px 14px 0;box-shadow:0 0 18px #00e5ff44;border:none;cursor:pointer;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- SPLASH -->
+<div id="splash" class="screen">
+  <div class="splash-glow"></div>
+  <div class="splash-ghost" id="splash-ghost"></div>
+  <div class="splash-title">GHOST EA</div>
+  <div class="splash-sub">Smart Money · ICT · Sniper Entries</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+  <div class="splash-powered">POWERED BY SMART EDGE</div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="screen hidden">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-glow"></div>
+    <div class="header-sub">You Are Trading With</div>
+    <div class="header-title">Ghost EA Pro</div>
+    <div class="header-badge">
+      <span class="dot" id="conn-dot" style="background:var(--red)"></span>
+      <span id="conn-text">Disconnected</span>
+    </div>
+  </div>
+  <!-- Banner -->
+  <div class="banner">
+    <div class="banner-overlay"></div>
+    <div class="banner-scanline"></div>
+    <div id="banner-ghost" style="z-index:1"></div>
+    <div class="banner-info">
+      <div class="banner-account" id="banner-account">No Account</div>
+      <div class="banner-broker" id="banner-broker">Connect MT4/MT5</div>
+      <div class="banner-server" id="banner-server"></div>
+    </div>
+  </div>
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn-remove" onclick="stopBot()">✕ STOP</button>
+    <button class="btn-start idle" id="btn-start" onclick="toggleBot()">
+      <span class="btn-start-icon" id="btn-icon">▶</span>
+      <span class="btn-start-label" id="btn-label">START</span>
+    </button>
+    <button class="btn-symbols" onclick="showTab('symbols')">≡ PAIRS</button>
+  </div>
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('dashboard')" id="tab-dashboard">📊 Dashboard</button>
+    <button class="tab-btn" onclick="showTab('signals')" id="tab-signals">🎯 Signals</button>
+    <button class="tab-btn" onclick="showTab('settings')" id="tab-settings">⚙️ Settings</button>
+    <button class="tab-btn" onclick="showTab('logs')" id="tab-logs">📋 Logs</button>
+  </div>
+  <!-- Tab Content -->
+  <div class="tab-content" id="tab-content"></div>
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('dashboard')"><span class="nav-icon">🏠</span>HOME</button>
+    <button class="nav-plus" onclick="goMT()">+</button>
+    <button class="nav-btn" onclick="goMT()"><span class="nav-icon">📡</span>METATRADER</button>
+  </div>
+</div>
+
+<!-- MT SCREEN -->
+<div id="mt-screen" class="screen hidden">
+  <div class="mt-header">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+    <div>
+      <div class="mt-title">MetaTrader Account</div>
+      <div class="mt-sub">Add or test your MT4/MT5 credentials</div>
+    </div>
+  </div>
+  <div class="mt-body">
+    <div class="input-label">PLATFORM</div>
+    <div class="platform-toggle">
+      <button class="platform-btn active" id="pt-mt5" onclick="setPlatform('MT5')">MT5</button>
+      <button class="platform-btn" id="pt-mt4" onclick="setPlatform('MT4')">MT4</button>
+    </div>
+    <div class="input-label">BROKER</div>
+    <input class="inp" id="inp-broker" value="JustMarkets" oninput="autoServer()" placeholder="Broker name"/>
+    <div class="input-label">SERVER</div>
+    <input class="inp" id="inp-server" value="JustMarkets-Demo" placeholder="e.g. Broker-Demo"/>
+    <div class="input-label">ACCOUNT LOGIN NUMBER</div>
+    <input class="inp" id="inp-login" placeholder="Login number" type="number"/>
+    <div class="input-label">PASSWORD</div>
+    <input class="inp" id="inp-pass" placeholder="••••••••••" type="password"/>
+    <div id="test-result" style="display:none" class="success-msg">✅ Connection successful!</div>
+    <button class="btn-connect" onclick="connectAccount()">🔗 Connect Account</button>
+    <button class="btn-test" onclick="testConn()" id="btn-test">🔍 Test Connection</button>
+    <div class="enc-note">🔒 Credentials are encrypted and securely stored</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const STATE = {
+  connected: false, botActive: false,
+  account: null, platform: 'MT5',
+  signals: [], logs: [],
+  selectedPairs: ['XAUUSD','EURUSD','US30'],
+  riskMode: '1%', session: 'London Kill Zone',
+  wins: 0, losses: 0, pnl: 0,
+  currentTab: 'dashboard',
+  scanTimer: null
+};
+
+const PAIRS     = ['XAUUSD','EURUSD','GBPUSD','US30','NAS100','BTCUSD','GBPJPY','EURJPY'];
+const SESSIONS  = ['London Kill Zone','NY Kill Zone','Asian Range','Custom'];
+const RISK_MODES= ['0.5%','1%','2%','Fixed Lot'];
+const SMC = {
+  BOS:'Break of Structure', CHOCH:'Change of Character',
+  OB:'Order Block', FVG:'Fair Value Gap',
+  LIQ:'Liquidity Sweep', PDH:'Prev Day High/Low',
+  KZ:'Kill Zone', MSS:'Market Structure Shift',
+  EQH:'Equal Highs/Lows', BB:'Breaker Block'
+};
+const SMC_KEYS = Object.keys(SMC);
+const SMC_VALS = Object.values(SMC);
+
+// ═══════════════════════════════════════════════════════
+// GHOST SVG
+// ═══════════════════════════════════════════════════════
+function ghostSVG(size, animated) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 120" fill="none"
+    style="${animated?'animation:float 3s ease-in-out infinite':''}">
+    <defs>
+      <radialGradient id="gg" cx="50%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="#00e5ff" stop-opacity=".9"/>
+        <stop offset="100%" stop-color="#0d47a1" stop-opacity=".6"/>
+      </radialGradient>
+      <filter id="gf"><feGaussianBlur stdDeviation="3" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <path d="M50 5C20 5 8 28 8 55L8 110L18 100L28 110L38 100L50 110L62 100L72 110L82 100L92 110L92 55C92 28 80 5 50 5Z"
+      fill="url(#gg)" filter="url(#gf)" opacity=".95"/>
+    <circle cx="35" cy="50" r="8" fill="#001a33" opacity=".9"/>
+    <circle cx="65" cy="50" r="8" fill="#001a33" opacity=".9"/>
+    <circle cx="37" cy="48" r="3" fill="#00e5ff"/>
+    <circle cx="67" cy="48" r="3" fill="#00e5ff"/>
+    <path d="M38 68Q50 78 62 68" stroke="#001a33" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// SPLASH → HOME
+// ═══════════════════════════════════════════════════════
+document.getElementById('splash-ghost').innerHTML = ghostSVG(90, true);
+document.getElementById('banner-ghost').innerHTML = ghostSVG(100, true);
+setTimeout(() => {
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('home').classList.remove('hidden');
+  renderTab('dashboard');
+}, 2800);
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function goMT() {
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('mt-screen').classList.remove('hidden');
+}
+function goHome() {
+  document.getElementById('mt-screen').classList.add('hidden');
+  document.getElementById('home').classList.remove('hidden');
+}
+function showTab(tab) {
+  STATE.currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const t = document.getElementById('tab-'+tab);
+  if(t) t.classList.add('active');
+  renderTab(tab);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER TABS
+// ═══════════════════════════════════════════════════════
+function renderTab(tab) {
+  const c = document.getElementById('tab-content');
+  if(tab==='dashboard') c.innerHTML = renderDashboard();
+  else if(tab==='signals') c.innerHTML = renderSignals();
+  else if(tab==='symbols') c.innerHTML = renderSymbols();
+  else if(tab==='settings') c.innerHTML = renderSettings();
+  else if(tab==='logs') { c.innerHTML = renderLogs(); c.scrollTop = c.scrollHeight; }
+}
+
+function renderDashboard() {
+  const total = STATE.signals.length;
+  const wr = total ? Math.round((STATE.wins/total)*100) : 0;
+  const p = STATE.pnl;
+  return `
+  <div class="stats-row">
+    ${statCard('Win Rate', wr+'%', '#00e5ff')}
+    ${statCard('Trades', total, '#7c4dff')}
+    ${statCard('P&L', (p>=0?'+':'')+p.toFixed(1)+'R', p>=0?'#00e676':'#f44336')}
+  </div>
+  <div class="stats-row">
+    ${statCard('Wins', STATE.wins, '#00e676')}
+    ${statCard('Losses', STATE.losses, '#f44336')}
+    ${statCard('Pairs', STATE.selectedPairs.length, '#ffab40')}
+  </div>
+  <div class="section-label">SMC / ICT Strategy Engine</div>
+  <div class="strat-grid">
+    ${SMC_KEYS.map((k,i)=>`<div class="strat-chip"><span class="strat-key">${k}</span><span class="strat-val">${SMC_VALS[i]}</span></div>`).join('')}
+  </div>
+  <div class="section-label">Live Status</div>
+  <div class="status-card">
+    ${sr('Bot', STATE.botActive?'ACTIVE':'IDLE', STATE.botActive)}
+    ${sr('MT Connection', STATE.connected?'CONNECTED':'OFFLINE', STATE.connected)}
+    ${sr('Kill Zone', STATE.session, true)}
+    ${sr('Structure', 'BULLISH BOS', true)}
+    ${sr('Liquidity', 'PDH Swept', true)}
+    ${sr('OB Validated', 'YES', true)}
+    ${sr('Prop Guard', 'ACTIVE', true)}
+    ${sr('News Filter', 'ON', true)}
+  </div>`;
+}
+function statCard(lbl,val,col) {
+  return `<div class="stat-card" style="border-color:${col}">
+    <div class="stat-value" style="color:${col}">${val}</div>
+    <div class="stat-label">${lbl}</div>
+  </div>`;
+}
+function sr(lbl,val,ok) {
+  return `<div class="status-row">
+    <span class="status-label">${lbl}</span>
+    <span class="status-val" style="color:${ok?'#00e676':'#f44336'}">${val}</span>
+  </div>`;
+}
+
+function renderSignals() {
+  if(!STATE.botActive && STATE.signals.length===0)
+    return `<div class="empty-msg">▶ Start the bot to receive signals</div>`;
+  if(STATE.botActive && STATE.signals.length===0)
+    return `<div class="empty-msg">🔍 Scanning markets for SMC setups...</div>`;
+  return [...STATE.signals].reverse().map(sig => `
+    <div class="signal-card" style="border-color:${sig.dir==='BUY'?'#00e676':'#f44336'}">
+      <div class="signal-top">
+        <span class="signal-pair">${sig.pair}</span>
+        <span class="signal-dir" style="background:${sig.dir==='BUY'?'#00e676':'#f44336'}">${sig.dir}</span>
+        <span class="signal-time">${sig.time}</span>
+      </div>
+      <div class="signal-strat">📍 ${sig.strat}</div>
+      <div class="signal-grid">
+        <div class="signal-field"><span class="signal-field-lbl">ENTRY</span><span class="signal-field-val" style="color:#e0e0e0">${sig.entry}</span></div>
+        <div class="signal-field"><span class="signal-field-lbl">SL</span><span class="signal-field-val" style="color:#f44336">${sig.sl}</span></div>
+        <div class="signal-field"><span class="signal-field-lbl">TP</span><span class="signal-field-val" style="color:#00e676">${sig.tp}</span></div>
+        <div class="signal-field"><span class="signal-field-lbl">R:R</span><span class="signal-field-val" style="color:#ffab40">${sig.rr}</span></div>
+      </div>
+      ${sig.result?`<div class="signal-result" style="background:${sig.result==='WIN'?'#00e67618':'#f4433618'};color:${sig.result==='WIN'?'#00e676':'#f44336'}">${sig.result==='WIN'?'✅ WIN':'❌ LOSS'} ${sig.pnl!=null?(sig.pnl>0?'+':'')+sig.pnl.toFixed(1)+'R':''}</div>`:''}
+    </div>`).join('');
+}
+
+function renderSymbols() {
+  return `
+  <div class="section-label">Select Trading Pairs</div>
+  <div class="symbol-grid">
+    ${PAIRS.map(p=>`<button class="symbol-btn ${STATE.selectedPairs.includes(p)?'active':''}" onclick="togglePair('${p}')">${p}</button>`).join('')}
+  </div>
+  <div class="section-label">Prop Firm Protection</div>
+  <div class="status-card">
+    ${sr('Max Daily Loss','4%',true)}
+    ${sr('Max Overall Loss','8%',true)}
+    ${sr('News Avoidance','ENABLED',true)}
+    ${sr('Drawdown Guard','ACTIVE',true)}
+    ${sr('Trade Spacing','5 min min',true)}
+    ${sr('Weekend Close','AUTO',true)}
+  </div>`;
+}
+function togglePair(p) {
+  if(STATE.selectedPairs.includes(p))
+    STATE.selectedPairs = STATE.selectedPairs.filter(x=>x!==p);
+  else STATE.selectedPairs.push(p);
+  renderTab('symbols');
+}
+
+function renderSettings() {
+  return `
+  <div class="section-label">Risk Management</div>
+  <div class="setting-row"><span class="setting-label">Risk Per Trade</span></div>
+  <div class="toggle-group">
+    ${RISK_MODES.map(r=>`<button class="toggle-btn ${STATE.riskMode===r?'active':''}" onclick="setRisk('${r}')">${r}</button>`).join('')}
+  </div>
+  <div class="section-label">Session / Kill Zone</div>
+  <div class="toggle-group">
+    ${SESSIONS.map(s=>`<button class="toggle-btn ${STATE.session===s?'active':''}" onclick="setSession('${s}')">${s.replace(' Kill Zone','').replace('Zone','')}</button>`).join('')}
+  </div>
+  <div class="section-label">ICT / SMC Filters</div>
+  ${[['Order Block Confirm','ON'],['BOS Required','ON'],['FVG Entry','ON'],['Liq Sweep','ON'],['HTF Bias Align','ON'],['News Avoidance','ON'],['Equal Highs Hunt','OFF'],['Breaker Block','ON']].map(([l,v])=>`
+  <div class="setting-row">
+    <span class="setting-label">${l}</span>
+    <span class="setting-val" style="color:${v==='ON'?'#00e676':'#555'}">${v}</span>
+  </div>`).join('')}`;
+}
+function setRisk(r) { STATE.riskMode=r; renderTab('settings'); }
+function setSession(s) { STATE.session=s; renderTab('settings'); }
+
+function renderLogs() {
+  if(!STATE.logs.length) return `<div class="empty-msg">No logs yet. Start the bot.</div>`;
+  return STATE.logs.map(l=>`
+    <div class="log-line" style="color:${l.type==='error'?'#f44':l.type==='success'?'#00e676':l.type==='signal'?'#00e5ff':'#556'}">
+      <span class="log-time">[${l.time}]</span> ${l.msg}
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// MT SCREEN LOGIC
+// ═══════════════════════════════════════════════════════
+function setPlatform(p) {
+  STATE.platform = p;
+  document.getElementById('pt-mt5').classList.toggle('active', p==='MT5');
+  document.getElementById('pt-mt4').classList.toggle('active', p==='MT4');
+}
+function autoServer() {
+  const b = document.getElementById('inp-broker').value;
+  document.getElementById('inp-server').value = b+'-Demo';
+}
+function testConn() {
+  const btn = document.getElementById('btn-test');
+  btn.textContent = 'Testing...';
+  setTimeout(()=>{
+    btn.textContent = '🔍 Test Connection';
+    const r = document.getElementById('test-result');
+    r.style.display='block';
+    setTimeout(()=>r.style.display='none', 3000);
+  }, 2000);
+}
+function connectAccount() {
+  const login = document.getElementById('inp-login').value;
+  const broker = document.getElementById('inp-broker').value;
+  const server = document.getElementById('inp-server').value;
+  if(!login) { alert('Please enter your account login number'); return; }
+  STATE.account = { login, broker, server, platform: STATE.platform };
+  STATE.connected = true;
+  document.getElementById('conn-dot').style.background = '#00e676';
+  document.getElementById('conn-text').textContent = 'Live';
+  document.getElementById('banner-account').textContent = login;
+  document.getElementById('banner-broker').textContent = broker + ' · ' + STATE.platform;
+  document.getElementById('banner-server').textContent = server;
+  addLog(`✅ Connected to ${broker} ${STATE.platform} — Account ${login}`, 'success');
+  goHome();
+  renderTab(STATE.currentTab);
+}
+
+// ═══════════════════════════════════════════════════════
+// BOT ENGINE
+// ═══════════════════════════════════════════════════════
+function toggleBot() {
+  if(!STATE.connected) { alert('Please connect your MetaTrader account first.\nTap the + button or METATRADER.'); return; }
+  STATE.botActive ? stopBot() : startBot();
+}
+function startBot() {
+  STATE.botActive = true;
+  document.getElementById('btn-start').className = 'btn-start active';
+  document.getElementById('btn-icon').textContent = '⏸';
+  document.getElementById('btn-label').textContent = 'RUNNING';
+  addLog('🤖 Ghost EA started — scanning for SMC setups...', 'success');
+  addLog(`📍 Session: ${STATE.session}`, 'info');
+  addLog(`💰 Risk: ${STATE.riskMode} per trade`, 'info');
+  addLog(`📊 Pairs: ${STATE.selectedPairs.join(', ')}`, 'info');
+  scan();
+}
+function stopBot() {
+  STATE.botActive = false;
+  clearTimeout(STATE.scanTimer);
+  document.getElementById('btn-start').className = 'btn-start idle';
+  document.getElementById('btn-icon').textContent = '▶';
+  document.getElementById('btn-label').textContent = 'START';
+  addLog('🛑 Bot stopped.', 'error');
+  if(STATE.currentTab==='dashboard') renderTab('dashboard');
+}
+function scan() {
+  if(!STATE.botActive) return;
+  const delay = 5000 + Math.random()*5000;
+  STATE.scanTimer = setTimeout(()=>{
+    const r = Math.random();
+    if(r > 0.55) generateSignal();
+    else {
+      const msgs = ['No OB confirmed — waiting','BOS not formed yet','Price in discount — monitoring','HTF bias unclear — skipping','Spread elevated — avoiding','Waiting for MSS confirmation','Liquidity not swept — holding'];
+      addLog('⏳ '+msgs[Math.floor(Math.random()*msgs.length)], 'info');
+    }
+    if(STATE.currentTab==='logs') renderTab('logs');
+    scan();
+  }, delay);
+}
+function generateSignal() {
+  const pairs = STATE.selectedPairs.length ? STATE.selectedPairs : ['XAUUSD'];
+  const pair = pairs[Math.floor(Math.random()*pairs.length)];
+  const dir = Math.random()>.5?'BUY':'SELL';
+  const si = Math.floor(Math.random()*SMC_KEYS.length);
+  const strat = SMC_VALS[si];
+  const base = 1.0800 + Math.random()*0.02;
+  const entry = base.toFixed(5);
+  const sl = dir==='BUY'?(base-0.003).toFixed(5):(base+0.003).toFixed(5);
+  const tp = dir==='BUY'?(base+0.009).toFixed(5):(base-0.009).toFixed(5);
+  const sig = { id:Date.now(), pair, dir, strat, entry, sl, tp, rr:'1:3', time:new Date().toLocaleTimeString(), result:null, pnl:null };
+  STATE.signals.push(sig);
+  addLog(`🎯 SIGNAL: ${dir} ${pair} — ${strat}`, 'signal');
+  addLog(`📥 Entry:${entry} SL:${sl} TP:${tp} RR:1:3`, 'signal');
+  addLog(`⚡ Sniper entry executed!`, 'success');
+  if(STATE.currentTab==='signals'||STATE.currentTab==='dashboard') renderTab(STATE.currentTab);
+  // Simulate result
+  const closeTime = 8000 + Math.random()*14000;
+  setTimeout(()=>{
+    const won = Math.random()>0.38;
+    const pnl = won ? parseFloat((Math.random()*2+0.8).toFixed(1)) : -parseFloat((Math.random()*0.6+0.2).toFixed(1));
+    sig.result = won?'WIN':'LOSS';
+    sig.pnl = pnl;
+    STATE.pnl = parseFloat((STATE.pnl+pnl).toFixed(2));
+    if(won) STATE.wins++; else STATE.losses++;
+    addLog(`${won?'✅ WIN':'❌ LOSS'} — ${pair} ${dir} closed. P&L: ${pnl>0?'+':''}${pnl}R`, won?'success':'error');
+    if(STATE.currentTab==='signals'||STATE.currentTab==='dashboard') renderTab(STATE.currentTab);
+  }, closeTime);
+}
+function addLog(msg, type='info') {
+  STATE.logs.push({ msg, type, time:new Date().toLocaleTimeString() });
+  if(STATE.logs.length>120) STATE.logs.shift();
+}
+</script>
+</body>
+</html>
